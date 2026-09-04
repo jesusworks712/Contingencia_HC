@@ -23,7 +23,7 @@ from app.schemas.historia_clinica import (
     HistoriaClinicaOut,
     HistoriaClinicaResumen,
 )
-from app.services.pdf_generator import generar_pdf_historia, generar_pdf_incapacidad
+from app.services.pdf_generator import generar_pdf_historia
 
 router = APIRouter(prefix="/historias", tags=["Historias Clinicas"])
 
@@ -205,43 +205,6 @@ def exportar_historia_pdf(
     pdf_bytes = generar_pdf_historia(historia, nombre_medico_pdf)
 
     nombre_archivo = f"historia_{historia.id}"
-    if historia.paciente_cedula:
-        nombre_archivo += f"_{historia.paciente_cedula}"
-    nombre_archivo += ".pdf"
-
-    return Response(
-        content=pdf_bytes,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{nombre_archivo}"'},
-    )
-
-
-@router.get("/{historia_id}/incapacidad-pdf")
-def exportar_incapacidad_pdf(
-    historia_id: int,
-    medico_actual: Usuario = Depends(get_current_medico),
-    db: Session = Depends(get_db),
-):
-    """
-    Genera el PDF de incapacidad a partir del texto de incapacidad
-    guardado en el Modulo 8 de la historia. Visible para el medico
-    dueño de la historia o para un administrador (misma regla que
-    ver la historia / su PDF completo).
-    """
-    historia = _obtener_historia_visible_o_404(historia_id, medico_actual, db)
-
-    if not historia.incapacidad or not historia.incapacidad.strip():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Esta historia no tiene un texto de incapacidad guardado (Modulo 8)",
-        )
-
-    medico_de_la_historia = db.query(Usuario).filter(Usuario.id == historia.medico_id).first()
-    nombre_medico_pdf = medico_de_la_historia.nombre_completo if medico_de_la_historia else medico_actual.nombre_completo
-
-    pdf_bytes = generar_pdf_incapacidad(historia, nombre_medico_pdf)
-
-    nombre_archivo = f"incapacidad_{historia.id}"
     if historia.paciente_cedula:
         nombre_archivo += f"_{historia.paciente_cedula}"
     nombre_archivo += ".pdf"

@@ -48,12 +48,3 @@ export async function abrirPdfHistoria(id: number) {
   window.open(blobUrl, "_blank");
   setTimeout(() => window.URL.revokeObjectURL(blobUrl), 30000);
 }
-
-export async function abrirPdfIncapacidad(id: number) {
-  const res = await api.get(`/historias/${id}/incapacidad-pdf`, {
-    responseType: "blob",
-  });
-  const blobUrl = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
-  window.open(blobUrl, "_blank");
-  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 30000);
-}
