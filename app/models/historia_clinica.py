@@ -10,6 +10,7 @@ from sqlalchemy import (
     Date,
     TIMESTAMP,
     ForeignKey,
+    Boolean,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -28,6 +29,7 @@ class HistoriaClinica(Base):
 
     # Modulo 1: Identificacion del paciente
     paciente_nombre = Column(String(200))
+    paciente_tipo_identificacion = Column(String(5))
     paciente_cedula = Column(String(30), index=True)
     paciente_sexo = Column(String(20))
     paciente_fecha_nacimiento = Column(Date)
@@ -93,3 +95,5 @@ class HistoriaClinica(Base):
     creado_en = Column(TIMESTAMP, nullable=False, server_default=func.now())
     actualizado_en = Column(TIMESTAMP, nullable=False, server_default=func.now())
     finalizado_en = Column(TIMESTAMP, nullable=True)
+    transcrita_a_pana = Column(Boolean, nullable=False, default=False)
+    transcrita_a_pana_en = Column(TIMESTAMP, nullable=True)

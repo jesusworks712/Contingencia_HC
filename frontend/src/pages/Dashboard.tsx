@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿﻿import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
 import { Modulo1Identificacion } from "../components/modulos/Modulo1Identificacion";
@@ -14,9 +14,11 @@ import {
   crearHistoria,
   actualizarHistoria,
   finalizarHistoria,
+  verificarDuplicado,
 } from "../services/historias";
 
 const TOTAL_MODULOS = 9;
+const AUTOGUARDADO_MS = 15000;
 
 export default function Dashboard() {
   const [moduloActivo, setModuloActivo] = useState(1);
@@ -28,9 +30,38 @@ export default function Dashboard() {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [historiaFinalizada, setHistoriaFinalizada] = useState(false);
 
-  // Transición sutil al cambiar de módulo: responde a la navegación del
-  // usuario (anterior/siguiente/click en sidebar), no es decoración suelta.
   const [visible, setVisible] = useState(true);
+
+  // --- Autoguardado ---
+  const [ultimoAutoguardado, setUltimoAutoguardado] = useState<Date | null>(null);
+  const datosRef = useRef(datos);
+  const historiaIdRef = useRef(historiaId);
+  const guardandoRef = useRef(guardando);
+  const cambiosSinGuardar = useRef(false);
+  datosRef.current = datos;
+  historiaIdRef.current = historiaId;
+  guardandoRef.current = guardando;
+
+  // --- Aviso de posible duplicado (misma cédula + fecha) ---
+  const [avisoDuplicado, setAvisoDuplicado] = useState<string | null>(null);
+
+  // --- Estado de conexión ---
+  const [sinConexion, setSinConexion] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    function handleOnline() {
+      setSinConexion(false);
+    }
+    function handleOffline() {
+      setSinConexion(true);
+    }
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   function irAModulo(nuevoModulo: number) {
     setVisible(false);
@@ -42,6 +73,7 @@ export default function Dashboard() {
 
   function actualizarCampo(campo: string, valor: any) {
     setDatos((prev) => ({ ...prev, [campo]: valor }));
+    cambiosSinGuardar.current = true;
   }
 
   async function guardarSinAvanzar(): Promise<number | null> {
@@ -77,6 +109,7 @@ export default function Dashboard() {
     const idGuardado = await guardarSinAvanzar();
 
     if (idGuardado) {
+      cambiosSinGuardar.current = false;
       setMensaje("Guardado correctamente");
       if (moduloActivo < TOTAL_MODULOS) {
         irAModulo(moduloActivo + 1);
@@ -86,6 +119,66 @@ export default function Dashboard() {
 
     setGuardando(false);
   }
+
+  // Autoguardado silencioso: cada AUTOGUARDADO_MS, si hay cambios sin
+  // guardar y no se está guardando ya, guarda sin avanzar ni mostrar
+  // mensajes de error intrusivos.
+  useEffect(() => {
+    const intervalo = setInterval(async () => {
+      if (historiaFinalizada) return;
+      if (guardandoRef.current) return;
+      if (!cambiosSinGuardar.current) return;
+
+      const tieneAlgoQueGuardar =
+        datosRef.current.paciente_nombre || datosRef.current.paciente_cedula || historiaIdRef.current;
+      if (!tieneAlgoQueGuardar) return;
+
+      try {
+        if (!historiaIdRef.current) {
+          const nueva = await crearHistoria({ ...datosRef.current, modulo_actual: moduloActivo });
+          setHistoriaId(nueva.id);
+        } else {
+          await actualizarHistoria(historiaIdRef.current, { ...datosRef.current, modulo_actual: moduloActivo });
+        }
+        cambiosSinGuardar.current = false;
+        setUltimoAutoguardado(new Date());
+      } catch {
+        // Autoguardado silencioso: si falla (ej. sin conexión), simplemente
+        // se reintenta en el próximo ciclo. No se pierden los datos en pantalla.
+      }
+    }, AUTOGUARDADO_MS);
+
+    return () => clearInterval(intervalo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historiaFinalizada, moduloActivo]);
+
+  // Aviso de posible duplicado: cuando hay cédula + fecha, consulta si ya
+  // existe otra historia con esos mismos datos.
+  useEffect(() => {
+    const cedula = datos.paciente_cedula;
+    const fecha = datos.fecha_atencion;
+    if (!cedula || !fecha || historiaFinalizada) {
+      setAvisoDuplicado(null);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        const resultado = await verificarDuplicado(cedula, fecha, historiaId || undefined);
+        if (resultado.duplicado) {
+          setAvisoDuplicado(
+            `Ya existe ${resultado.historias.length > 1 ? "más de una historia" : "una historia"} con esta cédula y fecha. Verifica que no sea un registro duplicado.`
+          );
+        } else {
+          setAvisoDuplicado(null);
+        }
+      } catch {
+        // silencioso: si falla la verificación, simplemente no se muestra aviso
+      }
+    }, 800);
+
+    return () => clearTimeout(timeout);
+  }, [datos.paciente_cedula, datos.fecha_atencion, historiaId, historiaFinalizada]);
 
   async function handleFinalizar() {
     const confirmado = window.confirm(
@@ -101,6 +194,7 @@ export default function Dashboard() {
     if (idGuardado) {
       try {
         await finalizarHistoria(idGuardado);
+        cambiosSinGuardar.current = false;
         setHistoriaFinalizada(true);
         setMensaje("Historia finalizada correctamente");
       } catch (error) {
@@ -117,6 +211,9 @@ export default function Dashboard() {
     setModuloActivo(1);
     setHistoriaFinalizada(false);
     setMensaje(null);
+    setUltimoAutoguardado(null);
+    setAvisoDuplicado(null);
+    cambiosSinGuardar.current = false;
   }
 
   function renderModulo() {
@@ -204,12 +301,24 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
 
+        {sinConexion && (
+          <div className="bg-red-600 text-white text-xs text-center py-1.5 font-medium">
+            Sin conexión con el servidor. Tus datos siguen en pantalla; se guardarán al reconectar.
+          </div>
+        )}
+
         <main className="flex-1 overflow-y-auto p-6">
           <div
             className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 max-w-4xl transition-opacity duration-150 ${
               visible ? "opacity-100" : "opacity-0"
             }`}
           >
+            {avisoDuplicado && (
+              <div className="mb-4 bg-amber-50 border border-amber-300 text-amber-800 text-sm rounded-lg px-4 py-2.5">
+                ⚠ {avisoDuplicado}
+              </div>
+            )}
+
             {renderModulo()}
 
             <div className="flex items-center justify-between mt-8 pt-4 border-t border-slate-200">
@@ -228,6 +337,9 @@ export default function Dashboard() {
                 {historiaId && (
                   <p className="text-xs text-slate-400 mt-1">
                     Historia #{historiaId}
+                    {ultimoAutoguardado && (
+                      <> · Autoguardado {ultimoAutoguardado.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}</>
+                    )}
                   </p>
                 )}
               </div>

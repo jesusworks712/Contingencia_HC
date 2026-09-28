@@ -1,5 +1,7 @@
 ﻿import { CampoTexto, CampoSelect } from "../Campos";
 
+import { TIPOS_IDENTIFICACION } from "../../constants/identificacion";
+
 interface Modulo1Props {
   datos: Record<string, any>;
   onChange: (campo: string, valor: string) => void;
@@ -14,33 +16,43 @@ export function Modulo1Identificacion({ datos, onChange }: Modulo1Props) {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-slate-800">
-          1. Identificacion del Paciente
+          1. Identificación del Paciente
         </h2>
         <p className="text-sm text-slate-500">
-          Datos generales tal como aparecen en la historia clinica oficial.
+          Datos generales tal como aparecen en la historia clínica oficial.
         </p>
       </div>
 
       {/* Fecha de Atencion */}
       <div className="grid grid-cols-3 gap-4">
         <CampoTexto
-          label="Fecha de Atencion"
+          label="Fecha de Atención"
           type="date"
           value={datos.fecha_atencion}
           onChange={set("fecha_atencion")}
         />
       </div>
 
-      {/* Nombre, Identificacion, Sexo */}
+      {/* Nombre */}
       <div className="grid grid-cols-3 gap-4">
         <CampoTexto
           label="Nombre"
           value={datos.paciente_nombre}
           onChange={set("paciente_nombre")}
-          className="col-span-2"
+          className="col-span-3"
+        />
+      </div>
+
+      {/* Tipo y Numero de Identificacion */}
+      <div className="grid grid-cols-3 gap-4">
+        <CampoSelect
+          label="Tipo de Identificación"
+          value={datos.paciente_tipo_identificacion}
+          onChange={set("paciente_tipo_identificacion")}
+          opciones={TIPOS_IDENTIFICACION}
         />
         <CampoTexto
-          label="Identificacion (Cedula)"
+          label="Número de Identificación"
           value={datos.paciente_cedula}
           onChange={set("paciente_cedula")}
         />
@@ -51,7 +63,7 @@ export function Modulo1Identificacion({ datos, onChange }: Modulo1Props) {
           label="Sexo"
           value={datos.paciente_sexo}
           onChange={set("paciente_sexo")}
-          opciones={["Masculino", "Femenino", "Otro"]}
+          opciones={["Masculino", "Femenino"]}
         />
         <CampoTexto
           label="Fecha Nacimiento"
@@ -60,7 +72,7 @@ export function Modulo1Identificacion({ datos, onChange }: Modulo1Props) {
           onChange={set("paciente_fecha_nacimiento")}
         />
         <CampoTexto
-          label="Ocupacion"
+          label="Ocupación"
           value={datos.paciente_ocupacion}
           onChange={set("paciente_ocupacion")}
         />
@@ -69,12 +81,12 @@ export function Modulo1Identificacion({ datos, onChange }: Modulo1Props) {
       {/* Direccion, Telefono, Ciudad */}
       <div className="grid grid-cols-3 gap-4">
         <CampoTexto
-          label="Direccion"
+          label="Dirección"
           value={datos.paciente_direccion}
           onChange={set("paciente_direccion")}
         />
         <CampoTexto
-          label="Telefono"
+          label="Teléfono"
           value={datos.paciente_telefono}
           onChange={set("paciente_telefono")}
         />
@@ -88,7 +100,7 @@ export function Modulo1Identificacion({ datos, onChange }: Modulo1Props) {
       {/* Regimen, Convenio, Asegurador */}
       <div className="grid grid-cols-3 gap-4">
         <CampoTexto
-          label="Regimen"
+          label="Régimen"
           value={datos.paciente_regimen}
           onChange={set("paciente_regimen")}
         />
@@ -131,12 +143,12 @@ export function Modulo1Identificacion({ datos, onChange }: Modulo1Props) {
           onChange={set("paciente_etnia")}
         />
         <CampoTexto
-          label="Religion"
+          label="Religión"
           value={datos.paciente_religion}
           onChange={set("paciente_religion")}
         />
         <CampoTexto
-          label="Poblacion"
+          label="Población"
           value={datos.paciente_poblacion}
           onChange={set("paciente_poblacion")}
         />
@@ -156,7 +168,7 @@ export function Modulo1Identificacion({ datos, onChange }: Modulo1Props) {
             onChange={set("parentesco_acompanante")}
           />
           <CampoTexto
-            label="Telefono"
+            label="Teléfono"
             value={datos.telefono_acompanante}
             onChange={set("telefono_acompanante")}
           />
@@ -177,7 +189,7 @@ export function Modulo1Identificacion({ datos, onChange }: Modulo1Props) {
             onChange={set("parentesco_responsable")}
           />
           <CampoTexto
-            label="Telefono"
+            label="Teléfono"
             value={datos.telefono_responsable}
             onChange={set("telefono_responsable")}
           />

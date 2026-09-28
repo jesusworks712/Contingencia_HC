@@ -10,6 +10,7 @@ from pydantic import BaseModel
 class Modulo1Paciente(BaseModel):
     fecha_atencion: Optional[datetime] = None
     paciente_nombre: Optional[str] = None
+    paciente_tipo_identificacion: Optional[str] = None
     paciente_cedula: Optional[str] = None
     paciente_sexo: Optional[str] = None
     paciente_fecha_nacimiento: Optional[date] = None
@@ -112,6 +113,8 @@ class HistoriaClinicaOut(HistoriaClinicaUpsert):
     creado_en: datetime
     actualizado_en: datetime
     finalizado_en: Optional[datetime] = None
+    transcrita_a_pana: bool = False
+    transcrita_a_pana_en: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -120,9 +123,22 @@ class HistoriaClinicaOut(HistoriaClinicaUpsert):
 class HistoriaClinicaResumen(BaseModel):
     id: int
     paciente_nombre: Optional[str] = None
+    paciente_tipo_identificacion: Optional[str] = None
     paciente_cedula: Optional[str] = None
     estado: str
     fecha_atencion: datetime
+    medico_id: int
+    medico_nombre: Optional[str] = None
+    transcrita_a_pana: bool = False
+
+    class Config:
+        from_attributes = True
+
+class HistorialCambioOut(BaseModel):
+    id: int
+    accion: str
+    detalle: Optional[str] = None
+    fecha: datetime
     medico_id: int
     medico_nombre: Optional[str] = None
 

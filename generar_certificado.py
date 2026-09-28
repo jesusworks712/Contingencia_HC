@@ -11,7 +11,7 @@ import datetime
 import ipaddress
 
 # Cambia esta IP por la del servidor si es distinta
-IP_SERVIDOR = "10.50.0.132"
+IP_SERVIDOR = "10.50.0.95"
 
 key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 

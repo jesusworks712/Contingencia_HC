@@ -61,11 +61,16 @@ export function CampoTextarea({
   );
 }
 
+interface OpcionSelect {
+  value: string;
+  label: string;
+}
+
 interface CampoSelectProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  opciones: string[];
+  opciones: (string | OpcionSelect)[];
   className?: string;
 }
 
@@ -76,6 +81,10 @@ export function CampoSelect({
   opciones,
   className = "",
 }: CampoSelectProps) {
+  const normalizadas: OpcionSelect[] = opciones.map((op) =>
+    typeof op === "string" ? { value: op, label: op } : op
+  );
+
   return (
     <div className={className}>
       <label className="block text-xs font-medium text-slate-600 mb-1">
@@ -87,9 +96,9 @@ export function CampoSelect({
         className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2e86ab] focus:border-transparent transition-shadow bg-white"
       >
         <option value="">Seleccione...</option>
-        {opciones.map((op) => (
-          <option key={op} value={op}>
-            {op}
+        {normalizadas.map((op) => (
+          <option key={op.value} value={op.value}>
+            {op.label}
           </option>
         ))}
       </select>

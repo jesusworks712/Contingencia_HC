@@ -1,0 +1,15 @@
+export const TIPOS_IDENTIFICACION = [
+  { value: "RC", label: "RC - Registro Civil" },
+  { value: "TI", label: "TI - Tarjeta de Identidad" },
+  { value: "CC", label: "CC - Cédula de Ciudadanía" },
+  { value: "CE", label: "CE - Cédula de Extranjería" },
+  { value: "PA", label: "PA - Pasaporte" },
+  { value: "SC", label: "SC - Salvoconducto" },
+  { value: "CD", label: "CD - Carné Diplomático" },
+  { value: "PE", label: "PE - Permiso Especial de Permanencia (PEP)" },
+  { value: "PT", label: "PT - Permiso por Protección Temporal (PPT)" },
+  { value: "CN", label: "CN - Certificado de Nacido Vivo" },
+  { value: "DE", label: "DE - Documento Extranjero" },
+  { value: "MS", label: "MS - Menor sin Identificación" },
+  { value: "AS", label: "AS - Adulto sin Identificación" },
+];

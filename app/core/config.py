@@ -2,7 +2,7 @@
 Configuracion central del proyecto.
 Lee las variables desde el archivo .env (ver .env.example).
 """
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -17,9 +17,7 @@ class Settings(BaseSettings):
     # --- App ---
     APP_NAME: str = "Sistema de Contingencia - Historias Clinicas"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 settings = Settings()

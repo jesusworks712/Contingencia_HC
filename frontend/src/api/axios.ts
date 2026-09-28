@@ -4,7 +4,7 @@
 // en :8000, por eso hace falta la URL completa.
 // En produccion (npm run build servido por FastAPI), ambos viven en el
 // mismo origen, asi que basta con rutas relativas ("").
-const baseURL = import.meta.env.DEV ? "http://localhost:8000" : "";
+const baseURL = import.meta.env.DEV ? "http://10.50.0.95:8010" : "";
 
 export const api = axios.create({
   baseURL,
